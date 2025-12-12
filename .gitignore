@@ -5,6 +5,8 @@
 
 # User-specific files
 test*
+figures/*
+*.png
 *.rsuser
 *.suo
 *.user

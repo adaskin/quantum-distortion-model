@@ -141,12 +141,11 @@ class AdaptiveVQESimulator:
         self.circuit_manager = VQECircuit(config.n_qubits, config.layers, self.H)
         self.n_params = config.layers * config.n_qubits * 3
 
-
-
     def run_experiment(
-        self, initial_params: np.ndarray, 
-        learning_rate: float, 
-        with_recovery = True,
+        self,
+        initial_params: np.ndarray,
+        learning_rate: float,
+        with_recovery=True,
         use_noise: bool = True,
         use_noisy_device_for_recovery=True,
     ) -> VQEResults:
@@ -162,10 +161,8 @@ class AdaptiveVQESimulator:
 
         for iteration in range(self.config.max_iterations):
             # Determine noise settings for this iteration
-            noise_level, phase, _ = self._get_iteration_settings(
-                iteration, use_noise
-            )
-            
+            noise_level, phase, _ = self._get_iteration_settings(iteration, use_noise)
+
             # Store iteration metadata
             results.add_iteration(
                 phases=phase,
@@ -176,9 +173,12 @@ class AdaptiveVQESimulator:
 
             # Compute energy and fidelity
             energy, current_probs = self._compute_metrics(
-                params, noise_level=noise_level, noisy_circuit= (phase != "CLEAN"), qnode=current_qnode
+                params,
+                noise_level=noise_level,
+                noisy_circuit=(phase != "CLEAN"),
+                qnode=current_qnode,
             )
-        
+
             # Update fidelity history (with fix for first iteration)
             if iteration == 0:
                 results.fidelities.append(current_probs[0])
@@ -186,7 +186,6 @@ class AdaptiveVQESimulator:
                 fidelity = np.inner(current_probs, prev_probs)
                 results.fidelities.append(fidelity)
 
-            
             results.energies.append(float(energy))
             results.params_history.append(params.copy())
 
@@ -197,7 +196,7 @@ class AdaptiveVQESimulator:
             total_distortion, comp_tuple = self._compute_distortion(
                 results, params, prev_params
             )
-         
+
             results.distortions.append(float(total_distortion))
             results.component_distortions.append(comp_tuple)
 
@@ -211,7 +210,7 @@ class AdaptiveVQESimulator:
             # Check for recovery
             did_recover = False
             if with_recovery:
-            # Only trigger recovery for no energy improvement and positive (bad) distortion
+                # Only trigger recovery for no energy improvement and positive (bad) distortion
                 if (
                     iteration > 2
                     and results.energies[-1] > results.energies[-2]
@@ -231,22 +230,24 @@ class AdaptiveVQESimulator:
                     if did_recover:
                         recovery_count += 1
                         # Recompute energy with recovered parameters
-                        if use_noisy_device_for_recovery: 
-                            print("using noisless device", energy)
+                        if use_noisy_device_for_recovery:
+
                             energy, current_probs = self._compute_metrics(
-                                params, noise_level=noise_level, 
-                                noisy_circuit= True, 
-                                qnode=current_qnode
+                                params,
+                                noise_level=noise_level,
+                                noisy_circuit=True,
+                                qnode=current_qnode,
                             )
-                            print("energy", energy)
+
                         else:
                             energy, current_probs = self._compute_metrics(
-                                params, noise_level=0.0, 
-                                noisy_circuit= False, 
-                                qnode=current_qnode
+                                params,
+                                noise_level=0.0,
+                                noisy_circuit=False,
+                                qnode=current_qnode,
                             )
                         results.energies[-1] = float(energy)
-                        results.fidelities[-1]= np.inner(current_probs, prev_probs)
+                        results.fidelities[-1] = np.inner(current_probs, prev_probs)
                         results.params_history[-1] = params.copy()
                         # Update recovery effectiveness in manager
                         self.recovery_manager.update_effectiveness(
@@ -257,22 +258,22 @@ class AdaptiveVQESimulator:
                             ),
                             energy_after=energy,
                         )
-            
+
             results.recoveries.append(did_recover)
 
             # Optimization step (skip if we just recovered and want to evaluate recovery first)
-            if not did_recover:  
+            if not did_recover:
                 params = opt.step(
-                            current_qnode,
-                            params,
-                            noisy_circuit= (phase != "CLEAN"),
-                            noise_level=noise_level,
-                            noise_type=self.noise_type,
-                            circuit_out_type="energy"
-                        )
-            
+                    current_qnode,
+                    params,
+                    noisy_circuit=(phase != "CLEAN"),
+                    noise_level=noise_level,
+                    noise_type=self.noise_type,
+                    circuit_out_type="energy",
+                )
+
                 self.optimizer_step_count += 1
-            
+
             prev_probs = current_probs
             # Periodic logging
             if (
@@ -332,10 +333,7 @@ class AdaptiveVQESimulator:
         return energy, probs
 
     def _compute_distortion(
-        self,
-        results: VQEResults,
-        params: np.ndarray,
-        prev_params: Optional[np.ndarray]
+        self, results: VQEResults, params: np.ndarray, prev_params: Optional[np.ndarray]
     ) -> Tuple:
         """Compute distortion metrics."""
         comp_tuple = self.distortion_model.compute_component_distortions(
@@ -395,8 +393,6 @@ class AdaptiveVQESimulator:
 
         return False, params, learning_rate, opt
 
-
-
     def _log_iteration(
         self,
         iteration: int,
@@ -455,8 +451,7 @@ class AdaptiveVQESimulator:
         return analysis
 
     def run_four_case_comparison(
-        self, learning_rate: float = 0.01,
-        use_noisy_device_for_recovery = True
+        self, learning_rate: float = 0.01, use_noisy_device_for_recovery=True
     ) -> Dict[str, VQEResults]:
         """Run all four comparison cases with the same initial parameters."""
         np.random.seed(42)
@@ -474,20 +469,32 @@ class AdaptiveVQESimulator:
 
         cases = {
             "ideal": self.run_experiment(
-                initial_params.copy(), learning_rate, 
-                with_recovery=False, use_noise=False
+                initial_params.copy(),
+                learning_rate,
+                with_recovery=False,
+                use_noise=False,
+                use_noisy_device_for_recovery=use_noisy_device_for_recovery,
             ),
             "ideal_recovery": self.run_experiment(
-                initial_params.copy(), learning_rate, 
-                use_noise=False, with_recovery=True
+                initial_params.copy(),
+                learning_rate,
+                use_noise=False,
+                with_recovery=True,
+                use_noisy_device_for_recovery=use_noisy_device_for_recovery,
             ),
             "noisy": self.run_experiment(
-                initial_params.copy(), learning_rate, 
-                use_noise=True, with_recovery=False
+                initial_params.copy(),
+                learning_rate,
+                use_noise=True,
+                with_recovery=False,
+                use_noisy_device_for_recovery=use_noisy_device_for_recovery,
             ),
             "noisy_recovery": self.run_experiment(
-                initial_params.copy(), learning_rate, 
-                use_noise=True, with_recovery=True
+                initial_params.copy(),
+                learning_rate,
+                use_noise=True,
+                with_recovery=True,
+                use_noisy_device_for_recovery=use_noisy_device_for_recovery,
             ),
         }
 
@@ -563,72 +570,60 @@ class AdaptiveVQESimulator:
         print("=" * 90)
 
 
-
-
 def create_demonstration_config():
     """Create configuration with mixed noise/noise-free intervals"""
     import numpy as np
+
     num_of_iterations = 220
-    
+    noisy_iter = 2  # short: 2, half:6, long:9
     config = {
-        'n_qubits': 3,
-        'layers': 3,
-        'max_iterations': num_of_iterations,
-        'random_seed': 42,
-        
+        "n_qubits": 7,
+        "layers": 3,
+        "max_iterations": num_of_iterations,
+        "random_seed": 42,
         # Mixed noise schedule with probabilities
-        'noise_schedule': {
-            'noise_intervals': [ (i, i+9, np.random.rand()*0.01) 
-                                for i in range(1, num_of_iterations, 10)],
-
-            #     (10, 50, 0.05),   # noise level 0.15, 
-            #     (60, 100, 0.010),   # noise level 0.10, 
-            #     (110, 150, 0.020),  # noise level 0.20, 
-            #     (160, 200, 0.005), # noise level 0.05,
-            # ]        
+        "noise_schedule": {
+            "noise_intervals": [
+                (i, i + noisy_iter, np.random.rand() * 0.01)
+                for i in range(1, num_of_iterations, 10)
+            ],
         },
-        
-        
         # Recovery parameters
-        'recovery_params': {
-                 'cooldown':3, #cool down for recoveries used in adaptive cool down
-                 'max_recoveries':num_of_iterations, 
-                 'min_spacing':3, #space between recoveries
-                 'adaptive_cooldown':True
+        "recovery_params": {
+            "cooldown": 3,  # cool down for recoveries used in adaptive cool down
+            "max_recoveries": num_of_iterations,
+            "min_spacing": 3,  # space between recoveries
+            "adaptive_cooldown": True,
         },
-        
-        'distortion_params': {
-            'energy_window': 10,
-            'weight_energy': 0.85,
-            'weight_fidelity': 0.05,
-            'weight_parameter': 0.05,
-            'weight_convergence': 0.05,
+        "distortion_params": {
+            "energy_window": 10,
+            "weight_energy": 0.85,
+            "weight_fidelity": 0.05,
+            "weight_parameter": 0.05,
+            "weight_convergence": 0.05,
         },
-        
-
         # Threshold model
-        'threshold_params': {
-            'tau_min': 0.04,
-            'tau_max': 0.35,
-            'decay_rate': 0.025,
-            'failure_tolerance': 0.15,
-            'kappa': 0.9,
-            'derivative_threshold': 0.0015,
-            'degradation_threshold': 0.07,
-            'noisy_multiplier': 1.3,
+        "threshold_params": {
+            "tau_min": 0.04,
+            "tau_max": 0.35,
+            "decay_rate": 0.025,
+            "failure_tolerance": 0.15,
+            "kappa": 0.9,
+            "derivative_threshold": 0.0015,
+            "degradation_threshold": 0.07,
+            "noisy_multiplier": 1.3,
         },
-        
         # Hamiltonian
-        'hamiltonian_params': {
-            'local_strength': -1.8,
-            'interaction_strengths': [0.9, 0.6, 0.4],
-            'include_next_nearest': True,
-            'next_nearest_strength': 0.5,
-            'add_random_terms': True,
+        "hamiltonian_params": {
+            "local_strength": -1.8,
+            "interaction_strengths": [0.9, 0.6, 0.4],
+            "include_next_nearest": True,
+            "next_nearest_strength": 0.5,
+            "add_random_terms": True,
         },
-        
     }
     return config
+
 
 if __name__ == "__main__":
     """Main function with Hamiltonian analysis and four-case comparison."""
@@ -664,11 +659,16 @@ if __name__ == "__main__":
     print("=" * 80)
 
     # Run four-case comparison
-    histories = simulator.run_four_case_comparison(learning_rate=0.01, 
-                                                   use_noisy_device_for_recovery=False)
+    histories = simulator.run_four_case_comparison(
+        learning_rate=0.01, use_noisy_device_for_recovery=False
+    )
 
     # Create plotter and plot results
-    plotter = VQEPlotter(simulator.noise_schedule, simulator.config.max_iterations)
+    plotter = VQEPlotter(
+        simulator.noise_schedule,
+        simulator.config.max_iterations,
+        simulator.config.n_qubits,
+    )
     plotter.plot_four_case_results(histories, ground_energy)
 
     # Print detailed results
