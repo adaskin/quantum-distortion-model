@@ -1,6 +1,6 @@
 # Quantum Distortion-Aware VQE Framework
 
-[![doi](https://img.shields.io/badge/doi-10.1007/s44464-026-00006-y-blue)](https://doi.org/10.1007/s44464-026-00006-y)
+[![DOI](https://img.shields.io/badge/DOI-10.1007/s44464--026--00006--y-blue.svg)](https://doi.org/10.1007/s44464-026-00006-y)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/mit)
 
 A Python framework implementing quantum distortion modeling for variational quantum algorithms, enabling error-resilient optimization without traditional error correction. Based on the paper **"Quantum Distortion Model for Running Variational Quantum Algorithms without Error Corrections"** by Ammar Daskin.
