@@ -1,6 +1,6 @@
 # Quantum Distortion-Aware VQE Framework
 
-[![zenodo](https://img.shields.io/badge/doi-10.5281/zenodo.17262788-blue)](https://doi.org/10.5281/zenodo.17262788)
+[![doi](https://img.shields.io/badge/doi-10.5281/zenodo.17262788-blue)](https://doi.org/10.1007/s44464-026-00006-y)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/mit)
 
 A Python framework implementing quantum distortion modeling for variational quantum algorithms, enabling error-resilient optimization without traditional error correction. Based on the paper **"Quantum Distortion Model for Running Variational Quantum Algorithms without Error Corrections"** by Ammar Daskin.
@@ -237,17 +237,16 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📚 Citation
 
-If you use this code in your research, please cite the original paper:
+If you use this code in your research, please cite the original paper (you can also see preprint version on zenodo (https://doi.org/10.5281/zenodo.17262788):
 
 ```bibtex
 @article{daskin2025quantum,
   author       = {Ammar, Daskin},
   title        = {Quantum Distortion Model for Running Variational Quantum Algorithms without Error Corrections},
-  month        = oct,
-  year         = 2025,
-  publisher    = {Zenodo},
-  doi          = {10.5281/zenodo.17262788},
-  url          = {https://doi.org/10.5281/zenodo.17262788},
+  month        = Jan,
+  year         = 2026,
+  journal    = {Discov. Quantum Sci.},
+  doi          = {10.1007/s44464-026-00006-y}
 }
 ```
 
